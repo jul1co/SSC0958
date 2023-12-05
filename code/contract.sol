@@ -59,4 +59,8 @@ contract ArtMarketplace {
 
         _restauration.isCompleted = true;
     }
+    
+    function getRestaurationHistory(uint256 _artId) public view returns (Restauration[] memory) {
+        return arts[_artId].restaurations;
+    }
 }
