@@ -16,7 +16,6 @@ contract ArtMarketplace {
         address payable owner;
         bool isSold;
         uint256 date;
-        Restauration[] restaurations;
     }
 
     struct Restaurer {
@@ -34,12 +33,11 @@ contract ArtMarketplace {
             price: _price,
             owner: payable(msg.sender),
             isSold: false,
-            date: _date,
-            restaurations: new Restauration[](0)
+            date: _date
         });
         arts.push(newArt);
     }
-
+    
     function buyArt(uint256 _artId) public payable {
         Art storage _art = arts[_artId];
 
@@ -51,25 +49,35 @@ contract ArtMarketplace {
         _art.isSold = true;
     }
 
-    function startRestauration(uint256 _artId, uint256 _restaurerId, string memory _description, uint256 _date) public {
+
+    mapping(uint => Restauration[]) public restaurations;
+
+    function addRestauration(uint _artId, uint256 _restaurerId, string memory _description) public {
         Art storage _art = arts[_artId];
         Restaurer memory _restaurer = restaurers[_restaurerId];
 
-        require(msg.sender == _art.owner, "Only the owner can start the restauration.");
+        require(msg.sender == _art.owner, "Only the owner can add a restauration."); 
 
-        _art.restaurations.push(Restauration(_description, _restaurer.account, false, _date));
+        Restauration memory newRestauration = Restauration({
+            description: _description,
+            restaurer: _restaurer.account,
+            isCompleted: false,
+            date: block.timestamp
+        });
+        restaurations[_artId].push(newRestauration);
     }
 
-    function completeRestauration(uint256 _artId, uint256 _restaurationId) public {
-        Art storage _art = arts[_artId];
-        Restauration storage _restauration = _art.restaurations[_restaurationId];
 
-        require(msg.sender == _restauration.restaurer, "Only the assigned restaurer can complete the restauration.");
+    function completeRestauration(uint256 _artId, uint256 _restaurerId, uint256 _restaurationId) public {
+        Restaurer memory _restaurer = restaurers[_restaurerId];
 
+        require(msg.sender == _restaurer.account, "Only the assigned restaurer can complete the restauration.");
+
+        Restauration storage _restauration = restaurations[_artId][_restaurationId];
         _restauration.isCompleted = true;
     }
 
     function getRestaurationHistory(uint256 _artId) public view returns (Restauration[] memory) {
-        return arts[_artId].restaurations;
+        return restaurations[_artId];
     }
 }
