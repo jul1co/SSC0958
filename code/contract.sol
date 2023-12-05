@@ -28,7 +28,16 @@ contract ArtMarketplace {
     Restaurer[] public restaurers;
 
     function mintArt(string memory _name, string memory _description, uint256 _price, uint256 _date) public {
-        arts.push(Art(_name, _description, _price, payable(msg.sender), false, _date, new Restauration[](0)));
+        Art memory newArt = Art({
+            name: _name,
+            description: _description,
+            price: _price,
+            owner: payable(msg.sender),
+            isSold: false,
+            date: _date,
+            restaurations: new Restauration[](0)
+        });
+        arts.push(newArt);
     }
 
     function buyArt(uint256 _artId) public payable {
@@ -59,7 +68,7 @@ contract ArtMarketplace {
 
         _restauration.isCompleted = true;
     }
-    
+
     function getRestaurationHistory(uint256 _artId) public view returns (Restauration[] memory) {
         return arts[_artId].restaurations;
     }
