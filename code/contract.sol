@@ -26,7 +26,15 @@ contract ArtMarketplace {
     Art[] public arts;
     Restaurer[] public restaurers;
 
-    function mintArt(string memory _name, string memory _description, uint256 _price, uint256 _date) public {
+    function addRestaurer(string memory _name) public {
+        Restaurer memory newRestaurer = Restaurer({
+            name: _name,
+            account: payable(msg.sender)
+        });
+        restaurers.push(newRestaurer);
+    }
+
+    function addArt(string memory _name, string memory _description, uint256 _price, uint256 _date) public {
         Art memory newArt = Art({
             name: _name,
             description: _description,
@@ -49,6 +57,34 @@ contract ArtMarketplace {
         _art.isSold = true;
     }
 
+    function sellArt(uint256 _artId, uint256 _price) public {
+        Art storage _art = arts[_artId];
+
+        require(msg.sender == _art.owner, "Only the owner can sell the art.");
+
+        _art.price = _price;
+        _art.isSold = false;
+    }
+
+    function getAvailableArts() public view returns (uint[] memory) {
+        uint[] memory availableArts = new uint[](arts.length);
+
+        uint counter = 0;
+        for (uint i = 0; i < arts.length; i++) {
+            if (!arts[i].isSold) {
+                availableArts[counter] = i;
+                counter++;
+            }
+        }
+
+        // Create a new array with the correct length
+        uint[] memory result = new uint[](counter);
+        for (uint i = 0; i < counter; i++) {
+            result[i] = availableArts[i];
+        }
+
+        return result;
+    }
 
     mapping(uint => Restauration[]) public restaurations;
 
